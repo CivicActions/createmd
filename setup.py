@@ -15,6 +15,6 @@ setup(
         'click',
     ],
     entry_points = {
-        'console_scripts': ['sspcreate=sspcreate.sspcreate:main']
+        'console_scripts': ['createmd=createmd.createmd:main']
     }
 )
