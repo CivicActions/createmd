@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
+# Given a YAML file and path to directory of template files, this tool
+# generates markdown files, replicating the directory structure in the template
+# directory. It uses the https://github.com/CivicActions/secrender tool for
+# variable replacement.
+
 import os
 import click
-# import secrender
-# from yaml import load, FullLoader
-# from yamlinclude import YamlIncludeConstructor
+from secrender import secrender
+from yaml import load, FullLoader
+from yamlinclude import YamlIncludeConstructor
 
 @click.command()
 @click.option('--in', '-i', 'in_',
@@ -20,20 +25,21 @@ import click
               required=True,
               help='Template directory')
 def main(in_, template_dir, out_):
-    # Ideally, this would live in secrender.
-    # YamlIncludeConstructor.add_to_loader_class(loader_class=FullLoader)
+    YamlIncludeConstructor.add_to_loader_class(loader_class=FullLoader)
 
-    # with open(in_, "r") as stream:
-    #     yaml = load(stream, Loader=FullLoader)
-    # print(yaml)
-    # do secrender.get_template_args()
+    with open(in_, "r") as stream:
+        yaml = load(stream, Loader=FullLoader)
+    template_args = secrender.get_template_args(yaml, None, dict())
 
     all_templates = get_template_list(template_dir)
     for template in all_templates:
-        out = template.replace(template_dir, out_ + '/')
-        if not os.path.exists(os.path.dirname(out)):
-            os.makedirs(os.path.dirname(out))
-        # do secrendering
+        out_file = template.replace(template_dir, out_ + '/')
+        ext = os.path.splitext(out_file)
+        if ext[1] == '.j2':
+            out_file = ext[0]
+        if not os.path.exists(os.path.dirname(out_file)):
+            os.makedirs(os.path.dirname(out_file))
+        secrender.secrender(template, template_args, out_file)
 
 def get_template_list(template_dir):
     file_list = list()
