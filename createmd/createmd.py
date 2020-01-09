@@ -18,28 +18,29 @@ from yamlinclude import YamlIncludeConstructor
               help='values (YAML)')
 @click.option('--out', '-o', 'out_',
               type=click.Path(exists=True, dir_okay=True, readable=True),
-              required=True,
+              default='.',
               help='Output directory')
-@click.option('--template', '-t', 'template_dir',
-              type=click.Path(exists=True, dir_okay=True, readable=True),
-              required=True,
+@click.option('--templates', '-t', 'template_dir',
+              type=click.Path(exists=True, dir_okay=True, file_okay=False),
               help='Template directory')
 def main(in_, template_dir, out_):
-    YamlIncludeConstructor.add_to_loader_class(loader_class=FullLoader)
-
-    with open(in_, "r") as stream:
-        yaml = load(stream, Loader=FullLoader)
-    template_args = secrender.get_template_args(yaml, None, dict())
-
+    template_args = load_template_args(in_)
     all_templates = get_template_list(template_dir)
     for template in all_templates:
-        out_file = template.replace(template_dir, out_ + '/')
+        out_file = template.replace(template_dir, '')
+        out_file = os.path.join(out_, out_file)
         ext = os.path.splitext(out_file)
         if ext[1] == '.j2':
             out_file = ext[0]
         if not os.path.exists(os.path.dirname(out_file)):
             os.makedirs(os.path.dirname(out_file))
         secrender.secrender(template, template_args, out_file)
+
+def load_template_args(in_):
+    YamlIncludeConstructor.add_to_loader_class(loader_class=FullLoader)
+    with open(in_, "r") as stream:
+        yaml = load(stream, Loader=FullLoader)
+    return secrender.get_template_args(yaml, None, dict())
 
 def get_template_list(template_dir):
     file_list = list()
