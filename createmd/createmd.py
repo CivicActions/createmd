@@ -7,7 +7,7 @@
 
 import os
 import click
-from secrender import secrender
+import secrender
 from yaml import load, FullLoader
 from yamlinclude import YamlIncludeConstructor
 
